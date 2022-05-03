@@ -10,11 +10,9 @@ public class InheritanceContext : PoolableDbContext
     {
     }
 
-    public DbSet<Animal> Animals { get; set; }
     public DbSet<AnimalQuery> AnimalQueries { get; set; }
     public DbSet<Country> Countries { get; set; }
     public DbSet<Drink> Drinks { get; set; }
-    public DbSet<Plant> Plants { get; set; }
 
     public static void Seed(InheritanceContext context)
     {
@@ -25,10 +23,10 @@ public class InheritanceContext : PoolableDbContext
 
         InheritanceData.WireUp(animals, countries);
 
-        context.Animals.AddRange(animals);
+        context.Set<Animal>().AddRange(animals);
         context.Countries.AddRange(countries);
         context.Drinks.AddRange(drinks);
-        context.Plants.AddRange(plants);
+        context.Set<Plant>().AddRange(plants);
 
         context.SaveChanges();
     }

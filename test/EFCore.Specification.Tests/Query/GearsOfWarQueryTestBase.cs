@@ -5257,7 +5257,7 @@ public abstract class GearsOfWarQueryTestBase<TFixture> : QueryTestBase<TFixture
             () =>
             {
                 using var ctx = CreateContext();
-                _ = ctx.Factions.Include(f => ((LocustHorde)f).Commander)
+                _ = ctx.Set<Faction>().Include(f => ((LocustHorde)f).Commander)
                     .Where(f => f.Capital.Name != "Foo").Select(f => (LocustHorde)f)
                     .Distinct().Where(lh => lh.Commander.Name != "Bar").ToList();
                 return Task.CompletedTask;
@@ -5270,7 +5270,7 @@ public abstract class GearsOfWarQueryTestBase<TFixture> : QueryTestBase<TFixture
             () =>
             {
                 using var ctx = CreateContext();
-                _ = ctx.Factions.Include(f => ((LocustHorde)f).Commander)
+                _ = ctx.Set<Faction>().Include(f => ((LocustHorde)f).Commander)
                     .Where(f => f.Capital.Name != "Foo").Select(f => new { horde = (LocustHorde)f })
                     .Distinct().Where(lh => lh.horde.Commander.Name != "Bar").ToList();
                 return Task.CompletedTask;

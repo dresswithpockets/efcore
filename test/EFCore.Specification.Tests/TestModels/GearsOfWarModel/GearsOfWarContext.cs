@@ -17,7 +17,6 @@ public class GearsOfWarContext : PoolableDbContext
     public DbSet<City> Cities { get; set; }
     public DbSet<Mission> Missions { get; set; }
     public DbSet<SquadMission> SquadMissions { get; set; }
-    public DbSet<Faction> Factions { get; set; }
     public DbSet<LocustLeader> LocustLeaders { get; set; }
     public DbSet<LocustHighCommand> LocustHighCommands { get; set; }
 
@@ -45,7 +44,7 @@ public class GearsOfWarContext : PoolableDbContext
         context.Tags.AddRange(tags);
         context.Gears.AddRange(gears);
         context.LocustLeaders.AddRange(locustLeaders);
-        context.Factions.AddRange(factions);
+        context.Set<Faction>().AddRange(factions);
         context.LocustHighCommands.AddRange(locustHighCommands);
         context.SaveChanges();
 

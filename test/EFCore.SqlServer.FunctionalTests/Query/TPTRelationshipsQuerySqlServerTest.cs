@@ -14,6 +14,10 @@ public class TPTRelationshipsQuerySqlServerTest
         fixture.TestSqlLoggerFactory.Clear();
     }
 
+    [ConditionalFact]
+    public virtual void Check_all_tests_overridden()
+        => TestHelpers.AssertAllMethodsOverridden(GetType());
+
     public override void Changes_in_derived_related_entities_are_detected()
     {
         base.Changes_in_derived_related_entities_are_detected();
