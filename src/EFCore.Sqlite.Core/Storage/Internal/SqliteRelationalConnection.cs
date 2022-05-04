@@ -3,6 +3,7 @@
 
 using System;
 using System.Data.Common;
+using System.Diagnostics.Metrics;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -177,6 +178,37 @@ namespace Microsoft.EntityFrameworkCore.Sqlite.Storage.Internal
                 sqliteConnection.CreateFunction(
                     name: "ef_negate",
                     (decimal? m) => -m,
+                    isDeterministic: true);
+                
+                sqliteConnection.CreateAggregate(
+                    name: "ef_avg",
+                    (sum: 0m, count: 0),
+                    ((decimal sum, int count) context, decimal value) =>
+                    {
+                        context.count++;
+                        context.sum += value;
+                        return context;
+                    },
+                    context => context.count == 0 ? 0m : context.sum / context.count,
+                    isDeterministic: true);
+                
+                sqliteConnection.CreateAggregate(
+                    name: "ef_max",
+                    seed: default,
+                    (decimal? a, decimal b) => a.HasValue ? (b > a ? b : a) : b,
+                    context => context ?? 0m,
+                    isDeterministic: true);
+                
+                sqliteConnection.CreateAggregate(
+                    name: "ef_min",
+                    seed: default,
+                    (decimal? a, decimal b) => a.HasValue ? (b < a ? b : a) : b,
+                    context => context ?? 0m,
+                    isDeterministic: true);
+                
+                sqliteConnection.CreateAggregate(
+                    name: "ef_sum",
+                    (decimal a, decimal b) => a + b,
                     isDeterministic: true);
             }
             else
