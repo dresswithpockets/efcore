@@ -1642,6 +1642,50 @@ CROSS JOIN ""BuiltInDataTypes"" AS ""b0""
 ORDER BY ""b"".""Id"", ""b0"".""Id""");
         }
 
+        [ConditionalFact]
+        public virtual void Projecting_aggregate_operations_on_decimals()
+        {
+            using var context = CreateContext();
+            var expected = (from dt in context.Set<BuiltInDataTypes>().ToList()
+                            group dt by dt.Id into g
+                            orderby g.Key
+                            select new
+                            {
+                                avg = g.Average(dt => dt.TestDecimal),
+                                max = g.Max(dt => dt.TestDecimal),
+                                min = g.Min(dt => dt.TestDecimal),
+                                sum = g.Sum(dt => dt.TestDecimal)
+                            }).ToList();
+
+            Fixture.TestSqlLoggerFactory.Clear();
+
+            var actual = (from dt in context.Set<BuiltInDataTypes>()
+                            group dt by dt.Id into g
+                            orderby g.Key
+                            select new
+                            {
+                                avg = g.Average(dt => dt.TestDecimal),
+                                max = g.Max(dt => dt.TestDecimal),
+                                min = g.Min(dt => dt.TestDecimal),
+                                sum = g.Sum(dt => dt.TestDecimal)
+                            }).ToList();
+
+            Assert.Equal(expected.Count, actual.Count);
+            for (var i = 0; i < expected.Count; i++)
+            {
+                Assert.Equal(expected[i].avg, actual[i].avg);
+                Assert.Equal(expected[i].max, actual[i].max);
+                Assert.Equal(expected[i].min, actual[i].min);
+                Assert.Equal(expected[i].sum, actual[i].sum);
+            }
+
+            AssertSql(
+                @"SELECT ef_avg(""b"".""TestDecimal"") AS ""avg"", ef_max(""b"".""TestDecimal"") AS ""max"", ef_min(""b"".""TestDecimal"") AS ""min"", ef_sum(""b"".""TestDecimal"") AS ""sum""
+FROM ""BuiltInDataTypes"" AS ""b""
+GROUP BY ""b"".""Id""
+ORDER BY ""b"".""Id""");
+        }
+
         private void AssertTranslationFailed(Action testCode)
             => Assert.Contains(
                 CoreStrings.TranslationFailed("")[21..],
