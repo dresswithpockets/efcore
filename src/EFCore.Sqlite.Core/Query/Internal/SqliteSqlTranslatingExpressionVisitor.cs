@@ -233,6 +233,18 @@ namespace Microsoft.EntityFrameworkCore.Sqlite.Query.Internal
         {
             Check.NotNull(sqlExpression, nameof(sqlExpression));
 
+            var inputType = sqlExpression.Type;
+            if (inputType == typeof(decimal))
+            {
+                return Dependencies.SqlExpressionFactory.Function(
+                    "ef_avg",
+                    new[] { sqlExpression },
+                    nullable: true,
+                    argumentsPropagateNullability: new[] { true },
+                    sqlExpression.Type,
+                    sqlExpression.TypeMapping);
+            }
+            
             var visitedExpression = base.TranslateAverage(sqlExpression);
             var argumentType = GetProviderType(visitedExpression);
             if (argumentType == typeof(decimal))
@@ -253,7 +265,19 @@ namespace Microsoft.EntityFrameworkCore.Sqlite.Query.Internal
         public override SqlExpression? TranslateMax(SqlExpression sqlExpression)
         {
             Check.NotNull(sqlExpression, nameof(sqlExpression));
-
+            
+            var inputType = sqlExpression.Type;
+            if (inputType == typeof(decimal))
+            {
+                return Dependencies.SqlExpressionFactory.Function(
+                    "ef_max",
+                    new[] { sqlExpression },
+                    nullable: true,
+                    argumentsPropagateNullability: new[] { true },
+                    sqlExpression.Type,
+                    sqlExpression.TypeMapping);
+            }
+            
             var visitedExpression = base.TranslateMax(sqlExpression);
             var argumentType = GetProviderType(visitedExpression);
             if (argumentType == typeof(DateTimeOffset)
@@ -277,7 +301,19 @@ namespace Microsoft.EntityFrameworkCore.Sqlite.Query.Internal
         public override SqlExpression? TranslateMin(SqlExpression sqlExpression)
         {
             Check.NotNull(sqlExpression, nameof(sqlExpression));
-
+            
+            var inputType = sqlExpression.Type;
+            if (inputType == typeof(decimal))
+            {
+                return Dependencies.SqlExpressionFactory.Function(
+                    "ef_min",
+                    new[] { sqlExpression },
+                    nullable: true,
+                    argumentsPropagateNullability: new[] { false },
+                    sqlExpression.Type,
+                    sqlExpression.TypeMapping);
+            }
+            
             var visitedExpression = base.TranslateMin(sqlExpression);
             var argumentType = GetProviderType(visitedExpression);
             if (argumentType == typeof(DateTimeOffset)
@@ -302,6 +338,18 @@ namespace Microsoft.EntityFrameworkCore.Sqlite.Query.Internal
         {
             Check.NotNull(sqlExpression, nameof(sqlExpression));
 
+            var inputType = sqlExpression.Type;
+            if (inputType == typeof(decimal))
+            {
+                return Dependencies.SqlExpressionFactory.Function(
+                    "ef_sum",
+                    new[] { sqlExpression },
+                    nullable: true,
+                    argumentsPropagateNullability: new[] { false },
+                    sqlExpression.Type,
+                    sqlExpression.TypeMapping);
+            }
+            
             var visitedExpression = base.TranslateSum(sqlExpression);
             var argumentType = GetProviderType(visitedExpression);
             if (argumentType == typeof(decimal))
