@@ -22,18 +22,6 @@ namespace Microsoft.EntityFrameworkCore.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        public override Task Sum_with_division_on_decimal(bool async)
-            => Assert.ThrowsAsync<NotSupportedException>(() => base.Sum_with_division_on_decimal(async));
-
-        public override Task Sum_with_division_on_decimal_no_significant_digits(bool async)
-            => Assert.ThrowsAsync<NotSupportedException>(() => base.Sum_with_division_on_decimal_no_significant_digits(async));
-
-        public override Task Average_with_division_on_decimal(bool async)
-            => Assert.ThrowsAsync<NotSupportedException>(() => base.Average_with_division_on_decimal(async));
-
-        public override Task Average_with_division_on_decimal_no_significant_digits(bool async)
-            => Assert.ThrowsAsync<NotSupportedException>(() => base.Average_with_division_on_decimal_no_significant_digits(async));
-
         public override async Task Multiple_collection_navigation_with_FirstOrDefault_chained(bool async)
         {
             Assert.Equal(
