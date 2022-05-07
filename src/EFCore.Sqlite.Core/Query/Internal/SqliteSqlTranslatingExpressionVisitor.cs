@@ -233,16 +233,9 @@ namespace Microsoft.EntityFrameworkCore.Sqlite.Query.Internal
         {
             Check.NotNull(sqlExpression, nameof(sqlExpression));
 
-            var inputType = sqlExpression.Type;
-            if (inputType == typeof(decimal))
+            if (AttemptDecimalAggregate(sqlExpression))
             {
-                return Dependencies.SqlExpressionFactory.Function(
-                    "ef_avg",
-                    new[] { sqlExpression },
-                    nullable: true,
-                    argumentsPropagateNullability: new[] { true },
-                    sqlExpression.Type,
-                    sqlExpression.TypeMapping);
+                return TranslateDecimalAverage(sqlExpression);
             }
             
             var visitedExpression = base.TranslateAverage(sqlExpression);
@@ -266,22 +259,14 @@ namespace Microsoft.EntityFrameworkCore.Sqlite.Query.Internal
         {
             Check.NotNull(sqlExpression, nameof(sqlExpression));
             
-            var inputType = sqlExpression.Type;
-            if (inputType == typeof(decimal))
+            if (AttemptDecimalAggregate(sqlExpression))
             {
-                return Dependencies.SqlExpressionFactory.Function(
-                    "ef_max",
-                    new[] { sqlExpression },
-                    nullable: true,
-                    argumentsPropagateNullability: new[] { true },
-                    sqlExpression.Type,
-                    sqlExpression.TypeMapping);
+                return TranslateDecimalMax(sqlExpression);
             }
             
             var visitedExpression = base.TranslateMax(sqlExpression);
             var argumentType = GetProviderType(visitedExpression);
             if (argumentType == typeof(DateTimeOffset)
-                || argumentType == typeof(decimal)
                 || argumentType == typeof(TimeSpan)
                 || argumentType == typeof(ulong))
             {
@@ -301,23 +286,15 @@ namespace Microsoft.EntityFrameworkCore.Sqlite.Query.Internal
         public override SqlExpression? TranslateMin(SqlExpression sqlExpression)
         {
             Check.NotNull(sqlExpression, nameof(sqlExpression));
-            
-            var inputType = sqlExpression.Type;
-            if (inputType == typeof(decimal))
+
+            if (AttemptDecimalAggregate(sqlExpression))
             {
-                return Dependencies.SqlExpressionFactory.Function(
-                    "ef_min",
-                    new[] { sqlExpression },
-                    nullable: true,
-                    argumentsPropagateNullability: new[] { false },
-                    sqlExpression.Type,
-                    sqlExpression.TypeMapping);
+                return TranslateDecimalMin(sqlExpression);
             }
             
             var visitedExpression = base.TranslateMin(sqlExpression);
             var argumentType = GetProviderType(visitedExpression);
             if (argumentType == typeof(DateTimeOffset)
-                || argumentType == typeof(decimal)
                 || argumentType == typeof(TimeSpan)
                 || argumentType == typeof(ulong))
             {
@@ -337,28 +314,7 @@ namespace Microsoft.EntityFrameworkCore.Sqlite.Query.Internal
         public override SqlExpression? TranslateSum(SqlExpression sqlExpression)
         {
             Check.NotNull(sqlExpression, nameof(sqlExpression));
-
-            var inputType = sqlExpression.Type;
-            if (inputType == typeof(decimal))
-            {
-                return Dependencies.SqlExpressionFactory.Function(
-                    "ef_sum",
-                    new[] { sqlExpression },
-                    nullable: true,
-                    argumentsPropagateNullability: new[] { false },
-                    sqlExpression.Type,
-                    sqlExpression.TypeMapping);
-            }
-            
-            var visitedExpression = base.TranslateSum(sqlExpression);
-            var argumentType = GetProviderType(visitedExpression);
-            if (argumentType == typeof(decimal))
-            {
-                throw new NotSupportedException(
-                    SqliteStrings.AggregateOperationNotSupported(nameof(Queryable.Sum), argumentType.ShortDisplayName()));
-            }
-
-            return visitedExpression;
+            return AttemptDecimalAggregate(sqlExpression) ? TranslateDecimalSum(sqlExpression) : base.TranslateSum(sqlExpression);
         }
 
         private static Type? GetProviderType(SqlExpression? expression)
@@ -401,6 +357,30 @@ namespace Microsoft.EntityFrameworkCore.Sqlite.Query.Internal
                 _ => visitedExpression
             };
         }
+
+        private static bool AttemptDecimalAggregate(SqlExpression sqlExpression)
+            => GetProviderType(sqlExpression) == typeof(decimal);
+
+        private SqlExpression TranslateDecimalAverage(SqlExpression sqlExpression)
+            => TranslateDecimalAggregate(sqlExpression, "ef_avg");
+
+        private SqlExpression TranslateDecimalMax(SqlExpression sqlExpression)
+            => TranslateDecimalAggregate(sqlExpression, "ef_max");
+
+        private SqlExpression TranslateDecimalMin(SqlExpression sqlExpression)
+            => TranslateDecimalAggregate(sqlExpression, "ef_min");
+
+        private SqlExpression TranslateDecimalSum(SqlExpression sqlExpression)
+            => TranslateDecimalAggregate(sqlExpression, "ef_sum");
+
+        private SqlExpression TranslateDecimalAggregate(SqlExpression sqlExpression, string function)
+            => Dependencies.SqlExpressionFactory.Function(
+                function,
+                new[] { sqlExpression },
+                nullable: false,
+                argumentsPropagateNullability: new[] { false },
+                sqlExpression.Type,
+                sqlExpression.TypeMapping);
 
         private static bool AttemptDecimalArithmetic(SqlBinaryExpression sqlBinary)
             => AreOperandsDecimals(sqlBinary)
