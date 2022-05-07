@@ -75,9 +75,6 @@ namespace Microsoft.EntityFrameworkCore.Query
                 (await Assert.ThrowsAsync<InvalidOperationException>(
                     () => base.Complex_query_with_group_by_in_subquery5(async))).Message);
 
-        public override async Task Odata_groupby_empty_key(bool async)
-            => await Assert.ThrowsAsync<NotSupportedException>(() => base.Odata_groupby_empty_key(async));
-
         public override async Task GroupBy_aggregate_from_multiple_query_in_same_projection(bool async)
             => Assert.Equal(
                 SqliteStrings.ApplyNotSupported,
