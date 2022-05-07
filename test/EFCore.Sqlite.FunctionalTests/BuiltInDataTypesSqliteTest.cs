@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -844,7 +845,6 @@ namespace Microsoft.EntityFrameworkCore
             {
                 Id = 201,
                 PartitionId = 200,
-                TestNullableDecimal = 2.000000000000001m,
                 TestNullableDateTimeOffset = new DateTimeOffset(2018, 1, 1, 12, 0, 0, TimeSpan.Zero),
                 TestNullableTimeSpan = TimeSpan.FromDays(2),
                 TestNullableUnsignedInt64 = 0
@@ -855,7 +855,6 @@ namespace Microsoft.EntityFrameworkCore
             {
                 Id = 202,
                 PartitionId = 200,
-                TestNullableDecimal = 10.000000000000001m,
                 TestNullableDateTimeOffset = new DateTimeOffset(2018, 1, 1, 11, 0, 0, TimeSpan.FromHours(-2)),
                 TestNullableTimeSpan = TimeSpan.FromDays(10),
                 TestNullableUnsignedInt64 = long.MaxValue + 1ul
@@ -867,11 +866,6 @@ namespace Microsoft.EntityFrameworkCore
             var query = context.Set<BuiltInNullableDataTypes>()
                 .Where(e => e.PartitionId == 200)
                 .GroupBy(_ => true);
-
-            Assert.Equal(
-                SqliteStrings.AggregateOperationNotSupported(nameof(Queryable.Min), typeof(decimal).ShortDisplayName()),
-                Assert.Throws<NotSupportedException>(
-                    () => query.Select(g => g.Min(e => e.TestNullableDecimal)).ToList()).Message);
 
             Assert.Equal(
                 SqliteStrings.AggregateOperationNotSupported(nameof(Queryable.Min), typeof(DateTimeOffset).ShortDisplayName()),
@@ -897,7 +891,6 @@ namespace Microsoft.EntityFrameworkCore
             {
                 Id = 203,
                 PartitionId = 201,
-                TestNullableDecimal = 2.000000000000001m,
                 TestNullableDateTimeOffset = new DateTimeOffset(2018, 1, 1, 12, 0, 0, TimeSpan.Zero),
                 TestNullableTimeSpan = TimeSpan.FromDays(2),
                 TestNullableUnsignedInt64 = 0
@@ -908,7 +901,6 @@ namespace Microsoft.EntityFrameworkCore
             {
                 Id = 204,
                 PartitionId = 201,
-                TestNullableDecimal = 10.000000000000001m,
                 TestNullableDateTimeOffset = new DateTimeOffset(2018, 1, 1, 11, 0, 0, TimeSpan.FromHours(-2)),
                 TestNullableTimeSpan = TimeSpan.FromDays(10),
                 TestNullableUnsignedInt64 = long.MaxValue + 1ul
@@ -920,11 +912,6 @@ namespace Microsoft.EntityFrameworkCore
             var query = context.Set<BuiltInNullableDataTypes>()
                 .Where(e => e.PartitionId == 201)
                 .GroupBy(_ => true);
-
-            Assert.Equal(
-                SqliteStrings.AggregateOperationNotSupported(nameof(Queryable.Max), typeof(decimal).ShortDisplayName()),
-                Assert.Throws<NotSupportedException>(
-                    () => query.Select(g => g.Max(e => e.TestNullableDecimal)).ToList()).Message);
 
             Assert.Equal(
                 SqliteStrings.AggregateOperationNotSupported(nameof(Queryable.Max), typeof(DateTimeOffset).ShortDisplayName()),
@@ -940,66 +927,6 @@ namespace Microsoft.EntityFrameworkCore
                 SqliteStrings.AggregateOperationNotSupported(nameof(Queryable.Max), typeof(ulong).ShortDisplayName()),
                 Assert.Throws<NotSupportedException>(
                     () => query.Select(g => g.Max(e => e.TestNullableUnsignedInt64)).ToList()).Message);
-        }
-
-        [ConditionalFact]
-        public virtual void Cant_query_Average_of_converted_types()
-        {
-            using var context = CreateContext();
-            context.Add(
-                new BuiltInNullableDataTypes
-                {
-                    Id = 205,
-                    PartitionId = 202,
-                    TestNullableDecimal = 1.000000000000003m
-                });
-
-            context.Add(
-                new BuiltInNullableDataTypes
-                {
-                    Id = 206,
-                    PartitionId = 202,
-                    TestNullableDecimal = 1.000000000000001m
-                });
-
-            context.SaveChanges();
-
-            Assert.Equal(
-                SqliteStrings.AggregateOperationNotSupported(nameof(Queryable.Average), typeof(decimal).ShortDisplayName()),
-                Assert.Throws<NotSupportedException>(
-                    () => context.Set<BuiltInNullableDataTypes>()
-                        .Where(e => e.PartitionId == 202)
-                        .Average(e => e.TestNullableDecimal)).Message);
-        }
-
-        [ConditionalFact]
-        public virtual void Cant_query_Sum_of_converted_types()
-        {
-            using var context = CreateContext();
-            context.Add(
-                new BuiltInDataTypes
-                {
-                    Id = 205,
-                    PartitionId = 203,
-                    TestDecimal = 1.000000000000001m
-                });
-
-            context.Add(
-                new BuiltInDataTypes
-                {
-                    Id = 206,
-                    PartitionId = 203,
-                    TestDecimal = 1.000000000000001m
-                });
-
-            context.SaveChanges();
-
-            Assert.Equal(
-                SqliteStrings.AggregateOperationNotSupported(nameof(Queryable.Sum), typeof(decimal).ShortDisplayName()),
-                Assert.Throws<NotSupportedException>(
-                    () => context.Set<BuiltInDataTypes>()
-                        .Where(e => e.PartitionId == 203)
-                        .Sum(e => e.TestDecimal)).Message);
         }
 
         [ConditionalFact]
